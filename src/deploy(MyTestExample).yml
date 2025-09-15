@@ -1,0 +1,30 @@
+# БАЗЫОВЫЙ ПАЙПЛАЙН ПРИМЕР!!!
+name: CI/CD Pipeline  # название workflow
+ 
+on: #триггер на котором срабатывает workflow. когда будет пуш запустится джоба deploy
+  push: 
+    branches: [main]
+ 
+jobs: # зарезервированеое слово, ДЖОБЫ состоят из STEPS(этапы)
+  deploy: #название джоба
+    runs-on: ubuntu-latest # указываем где будет запускаться workflow(github дает бесплатные раннеры, где мы запусти воркфлоу, каждый воркфлоу запускается на своем сервисе)
+    steps: # шаги которые будет выполнять ci/cd процесс
+      - uses: actions/checkout@v3 # готовый модуль, у гитхаб есть такие. Данный модуль (экшн который позволяет скачать наш репо на сервер ubuntu-latest
+      - name: Setup Node.js # имя след степа
+        uses: actions/setup-node@v3 # гоовый модуль
+        with:
+          node-version: '22' # какую веерсию ноды хотим установить
+      - run: npm ci # запускаем команду ci. устанавливает зависимости что бы мы могли дальше выполнять тесты и собирать докер имайдж
+      - run: npm test # запускаютс тесты, все тестирования нашего приложения 
+      - run: docker build -t username/app . # собираем нащ образ для того чтобы  его потом запушить на докер хаб или сервер
+      - run: docker login -u ${{ secrets.DOCKER_USER }} -p ${{ secrets.DOCKER_PASS }}
+      - run: docker push username/app
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: # подключится и выполнить скрипт. # скачает шаш образ из докерхаб. и запусститть
+            docker pull username/app
+            docker-compose up -d 
