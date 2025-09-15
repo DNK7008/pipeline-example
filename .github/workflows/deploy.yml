@@ -11,8 +11,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3  # Клонирует код из репозитория
 
-       - name: Установка зависимостей
-        run: npm ci
+      - name: Установка зависимостей
+        run: npm ci  # используется для быстрой и чистой установки зависимостей в nodejs проекте
  
       - name: Линтинг
         run: npm run lint
